@@ -1,10 +1,19 @@
 // Filter state lives in the URL (?cat=&q=&brand=&min=&max=&screen=&sort=) so it can be shared and survives refresh.
 
 export const CATEGORIES = [
-  { key: 'phone', label: 'Phones', singular: 'phone' },
-  { key: 'tablet', label: 'Tablets', singular: 'tablet' },
-  { key: 'laptop', label: 'Laptops', singular: 'laptop' },
+  { key: 'phone', label: 'Phones', singular: 'phone', path: '/phones' },
+  { key: 'tablet', label: 'Tablets', singular: 'tablet', path: '/tablets' },
+  { key: 'laptop', label: 'Laptops', singular: 'laptop', path: '/laptops' },
 ]
+
+// Each category has its own page (/phones, /tablets, /laptops); anywhere else (Home, Compare) counts as phones.
+export function categoryFromPath(pathname) {
+  return CATEGORIES.find((c) => pathname === c.path || pathname.startsWith(c.path + '/'))?.key ?? 'phone'
+}
+
+export function pathFor(category) {
+  return (CATEGORIES.find((c) => c.key === category) ?? CATEGORIES[0]).path
+}
 
 export const SORTS = [
   { key: '', label: 'Recommended' },
@@ -33,10 +42,10 @@ export function screenCategory(inches, category = 'phone') {
   return 'large'
 }
 
-export function readFilters(params) {
-  const cat = params.get('cat')
+// The category comes from the page (see categoryFromPath); everything else comes from the address's ?query.
+export function readFilters(params, category = 'phone') {
   return {
-    category: CATEGORIES.some((c) => c.key === cat) ? cat : 'phone',
+    category,
     q: (params.get('q') ?? '').trim(),
     brands: params.getAll('brand'),
     min: params.get('min') ?? '',
@@ -73,9 +82,8 @@ export function applyFilters(items, f) {
   return list
 }
 
-export function buildSearch({ category, q, brands, min, max, screens, sort }) {
+export function buildSearch({ q, brands, min, max, screens, sort }) {
   const p = new URLSearchParams()
-  if (category && category !== 'phone') p.set('cat', category)
   if (q) p.set('q', q)
   brands.forEach((b) => p.append('brand', b))
   if (min !== '') p.set('min', min)

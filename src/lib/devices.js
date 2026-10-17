@@ -9,13 +9,16 @@ import { looksLikeTablet, toDevice } from './phones.js'
 
 const list = (queries) => databases.listDocuments(DATABASE_ID, PHONES_COLLECTION_ID, queries)
 
-// The dataset has no category column: a model is a tablet when its name has one of these words.
+// Rows carry a `category` column ('phone' or 'tablet') once scripts/group-variants.mjs has been run.
+// Before that (the column doesn't exist yet) a model counts as a tablet when its name has one of these words.
+let hasCategoryColumn = true
 const TABLET_WORDS = ['iPad', 'Tab']
 
 function categoryQueries(category) {
+  if (category !== 'phone' && category !== 'tablet') return null // no laptops in the database
+  if (hasCategoryColumn) return [Query.equal('category', [category])]
   if (category === 'tablet') return [Query.or(TABLET_WORDS.map((w) => Query.contains('ModelName', [w])))]
-  if (category === 'phone') return TABLET_WORDS.map((w) => Query.notContains('ModelName', [w]))
-  return null // no laptops in the database
+  return TABLET_WORDS.map((w) => Query.notContains('ModelName', [w]))
 }
 
 // Every typed word must appear in the model name or the company name.
@@ -43,7 +46,7 @@ function screenQuery(category, size) {
 // The database can't list distinct values, so the brand filter reads just two short fields
 // (company + model name) once per browser session and works the brands out from those.
 
-const CATALOG_KEY = 'device-catalog-v1'
+const CATALOG_KEY = 'device-catalog-v2'
 let catalogPromise = null
 
 function loadCatalog() {
@@ -54,15 +57,21 @@ function loadCatalog() {
     } catch {
       /* no cache */
     }
+    // `category` may not exist yet, in which case it is simply left out of what comes back.
     const select = (offset) =>
-      list([Query.limit(100), Query.offset(offset), Query.select(['CompanyName', 'ModelName'])])
+      list([Query.limit(100), Query.offset(offset), Query.select(['CompanyName', 'ModelName', 'category'])]).catch(
+        () => list([Query.limit(100), Query.offset(offset), Query.select(['CompanyName', 'ModelName'])]),
+      )
     const first = await select(0)
     const rest = await Promise.all(
       Array.from({ length: Math.max(0, Math.ceil(first.total / 100) - 1) }, (_, i) => select((i + 1) * 100)),
     )
     const rows = [first, ...rest]
       .flatMap((r) => r.documents)
-      .map((d) => ({ b: d.CompanyName ?? '', m: d.ModelName ?? '' }))
+      .map((d) => ({
+        b: d.CompanyName ?? '',
+        c: d.category || (looksLikeTablet(d.ModelName) ? 'tablet' : 'phone'),
+      }))
     try {
       sessionStorage.setItem(CATALOG_KEY, JSON.stringify(rows))
     } catch {
@@ -82,7 +91,7 @@ export async function fetchBrands(category) {
     const names = [...new Set(samplePhones.filter((p) => categoryOf(p) === category).map((p) => p.brand))]
     return names.sort().map((name) => ({ name, variants: [name] }))
   }
-  const rows = (await loadCatalog()).filter((r) => r.b && (looksLikeTablet(r.m) ? 'tablet' : 'phone') === category)
+  const rows = (await loadCatalog()).filter((r) => r.b && r.c === category)
   const byLower = new Map()
   for (const { b } of rows) {
     const forms = byLower.get(b.toLowerCase()) ?? new Map()
@@ -108,42 +117,50 @@ export async function fetchDevices(filters, page, pageSize) {
     return { devices: all.slice((page - 1) * pageSize, page * pageSize), total: all.length }
   }
 
-  const category = categoryQueries(filters.category)
-  if (!category) return { devices: [], total: 0 }
+  if (!categoryQueries(filters.category)) return { devices: [], total: 0 }
 
-  const queries = [Query.limit(pageSize), Query.offset((page - 1) * pageSize), ...category]
-  queries.push(...searchQueries(filters.q))
-
+  // Brand names are mapped to every spelling used in the data ("POCO" and "Poco").
+  let brandSpellings = []
   if (filters.brands.length) {
     const known = await fetchBrands(filters.category)
-    const variants = filters.brands.flatMap((n) => known.find((b) => b.name === n)?.variants ?? [n])
-    queries.push(Query.equal('CompanyName', variants))
-  }
-  if (filters.min !== '') queries.push(Query.greaterThanEqual('launchPriceUSA', Number(filters.min)))
-  if (filters.max !== '') queries.push(Query.lessThanEqual('launchPriceUSA', Number(filters.max)))
-  if (filters.screens.length) {
-    const bands = filters.screens.map((s) => screenQuery(filters.category, s))
-    queries.push(bands.length === 1 ? bands[0] : Query.or(bands))
+    brandSpellings = filters.brands.flatMap((n) => known.find((b) => b.name === n)?.variants ?? [n])
   }
 
-  if (filters.sort === 'price-asc') queries.push(Query.orderAsc('launchPriceUSA'))
-  if (filters.sort === 'price-desc') queries.push(Query.orderDesc('launchPriceUSA'))
-  if (filters.sort === 'newest') queries.push(Query.orderDesc('launchYear'))
-  queries.push(Query.orderAsc('$id')) // keeps the order stable between pages
+  const build = () => {
+    const queries = [Query.limit(pageSize), Query.offset((page - 1) * pageSize), ...categoryQueries(filters.category)]
+    queries.push(...searchQueries(filters.q))
+    if (brandSpellings.length) queries.push(Query.equal('CompanyName', brandSpellings))
+    if (filters.min !== '') queries.push(Query.greaterThanEqual('launchPriceUSA', Number(filters.min)))
+    if (filters.max !== '') queries.push(Query.lessThanEqual('launchPriceUSA', Number(filters.max)))
+    if (filters.screens.length) {
+      const bands = filters.screens.map((s) => screenQuery(filters.category, s))
+      queries.push(bands.length === 1 ? bands[0] : Query.or(bands))
+    }
 
-  // One row per model: scripts/group-variants.mjs marks the primary row of each model. Until that has been
-  // run the column doesn't exist, so fall back to listing every row.
-  let res
-  if (hasPrimaryColumn) {
+    if (filters.sort === 'price-asc') queries.push(Query.orderAsc('launchPriceUSA'))
+    if (filters.sort === 'price-desc') queries.push(Query.orderDesc('launchPriceUSA'))
+    if (filters.sort === 'newest') queries.push(Query.orderDesc('launchYear'))
+    queries.push(Query.orderAsc('$id')) // keeps the order stable between pages
+
+    // One row per model: scripts/group-variants.mjs marks the primary row of each model.
+    if (hasPrimaryColumn) queries.push(Query.equal('isPrimary', [true]))
+    return queries
+  }
+
+  // `isPrimary` and `category` only exist after scripts/group-variants.mjs has been run. If the database
+  // says one is missing, carry on without it (older behaviour) instead of failing.
+  for (let attempt = 0; ; attempt++) {
     try {
-      res = await list([...queries, Query.equal('isPrimary', [true])])
+      const res = await list(build())
+      return { devices: res.documents.map(toDevice), total: res.total }
     } catch (e) {
-      if (!/isPrimary|attribute/i.test(e.message ?? '')) throw e
-      hasPrimaryColumn = false
+      const msg = e.message ?? ''
+      // (Two requests can fail together, so a flag that is already off still means "try again".)
+      if (attempt < 3 && /isPrimary/i.test(msg)) hasPrimaryColumn = false
+      else if (attempt < 3 && /category/i.test(msg)) hasCategoryColumn = false
+      else throw e
     }
   }
-  res ??= await list(queries)
-  return { devices: res.documents.map(toDevice), total: res.total }
 }
 
 // The devices with these ids, in the order given.

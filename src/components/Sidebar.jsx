@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import { Link, useSearchParams } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useBrands, useDevicesByIds } from '../hooks/useDevices.js'
+import useCategory from '../hooks/useCategory.js'
 import { appwriteConfigured } from '../lib/appwrite.js'
 import { displayName } from '../lib/format.js'
 import { useCompare } from '../context/CompareContext.jsx'
@@ -10,6 +11,7 @@ import {
   SORTS,
   activeFilterCount,
   buildSearch,
+  pathFor,
   readFilters,
 } from '../lib/filters.js'
 
@@ -72,7 +74,9 @@ export default function Sidebar({ className = '' }) {
   const { ids, remove } = useCompare()
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const f = readFilters(params)
+  const category = useCategory()
+  const f = readFilters(params, category)
+  const navigate = useNavigate()
   const count = activeFilterCount(f)
   const label = CATEGORIES.find((c) => c.key === f.category).label
 
@@ -86,8 +90,10 @@ export default function Sidebar({ className = '' }) {
   const { devices: picked } = useDevicesByIds(ids)
   const currency = appwriteConfigured ? '$' : '£'
 
+  // Each category is its own page. Moving keeps the search words and sort, but not the filters,
+  // because brands and screen sizes differ between phones and tablets.
   const selectCategory = (key) =>
-    update({ category: key, brands: [], screens: [], min: '', max: '' })
+    navigate(`${pathFor(key)}${buildSearch({ ...f, brands: [], screens: [], min: '', max: '' })}`)
 
   return (
     <aside className={className}>

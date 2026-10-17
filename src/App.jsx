@@ -10,6 +10,8 @@ export default function App() {
       <Route element={<Layout />}>
         <Route path="/" element={<Home />} />
         <Route path="/phones" element={<Phones />} />
+        <Route path="/tablets" element={<Phones />} />
+        <Route path="/laptops" element={<Phones />} />
         <Route path="/compare" element={<Compare />} />
       </Route>
     </Routes>

@@ -1,17 +1,19 @@
 import { useEffect } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { Navigate, useSearchParams } from 'react-router-dom'
 import { useDevicePage } from '../hooks/useDevices.js'
 import PhoneGrid from '../components/PhoneGrid.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import Sidebar from '../components/Sidebar.jsx'
-import { CATEGORIES, readFilters } from '../lib/filters.js'
+import useCategory from '../hooks/useCategory.js'
+import { CATEGORIES, pathFor, readFilters } from '../lib/filters.js'
 
 const PAGE_SIZE = 24
 
 export default function Phones() {
   const [params, setParams] = useSearchParams()
-  const filters = readFilters(params)
+  const category = useCategory()
+  const filters = readFilters(params, category)
   const label = CATEGORIES.find((c) => c.key === filters.category).label
 
   // The page number lives in the URL (?page=2). Changing search, category, filters or sort rebuilds
@@ -33,6 +35,15 @@ export default function Phones() {
     if (!loading && !error && total > 0 && page > pageCount) goToPage(pageCount, true)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, error, total, page, pageCount])
+
+  // Old links such as /phones?cat=tablet move to the page of that category (/tablets).
+  const oldCat = CATEGORIES.find((c) => c.key === params.get('cat'))
+  if (oldCat) {
+    const rest = new URLSearchParams(params)
+    rest.delete('cat')
+    const query = rest.toString()
+    return <Navigate to={`${oldCat.path}${query ? `?${query}` : ''}`} replace />
+  }
 
   const noun = label.toLowerCase()
   const first = (page - 1) * PAGE_SIZE + 1

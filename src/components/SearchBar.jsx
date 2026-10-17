@@ -1,16 +1,18 @@
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import CompareButton from './CompareButton.jsx'
-import { buildSearch, readFilters } from '../lib/filters.js'
+import useCategory from '../hooks/useCategory.js'
+import { buildSearch, pathFor, readFilters } from '../lib/filters.js'
 
 export default function SearchBar({ className = '' }) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
-  const filters = readFilters(params)
+  const category = useCategory()
+  const filters = readFilters(params, category)
 
   const onSubmit = (e) => {
     e.preventDefault()
     const q = new FormData(e.currentTarget).get('q').trim()
-    navigate(`/phones${buildSearch({ ...filters, q })}`)
+    navigate(`${pathFor(category)}${buildSearch({ ...filters, q })}`)
   }
 
   return (
