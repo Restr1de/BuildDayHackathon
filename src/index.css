@@ -1,0 +1,6 @@
+@import "tailwindcss";
+
+/* Larger base text for readability */
+html {
+  font-size: 18px;
+}
