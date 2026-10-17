@@ -1,8 +1,21 @@
-import { Query } from 'appwrite'
-import { databases, DATABASE_ID, PHONES_COLLECTION_ID } from './appwrite.js'
 import { screenCategory } from './filters.js'
 
-const PAGE = 100 // Appwrite's maximum page size
+// Photos we have locally (public/phones), keyed by model name without the storage size.
+const LOCAL_PHOTOS = {
+  'iphone 16 plus': '/phones/iphone-16-plus.png',
+  'iphone 16': '/phones/iphone-16.png',
+  'iphone 15 pro': '/phones/iphone-15-pro.png',
+  'iphone 15': '/phones/iphone-15.png',
+  'iphone 14': '/phones/iphone-14.png',
+  'iphone 13': '/phones/iphone-13.png',
+  'iphone 12': '/phones/iphone-12.png',
+}
+
+const withoutStorage = (model) =>
+  String(model ?? '').replace(/\s*\d+\s*(gb|tb)\s*$/i, '').trim().toLowerCase()
+
+// The dataset has no category column, so tablets are recognised by name.
+export const looksLikeTablet = (model) => /\b(ipad|tab|tablet)\b/i.test(String(model ?? ''))
 
 const present = (v) => v !== undefined && v !== null && v !== ''
 const pick = (doc, keys) => keys.map((k) => doc[k]).find(present)
@@ -19,10 +32,9 @@ function toNumber(v) {
 // The original fields are kept on the object, so the Compare page can read every dataset column.
 export function toDevice(doc) {
   const brand = doc.CompanyName ?? doc.brand ?? ''
-  const category = doc.category ?? 'phone'
-
   // The dataset's model column name isn't fixed, so accept the usual spellings.
   const model = pick(doc, ['modelName', 'ModelName', 'Model Name', 'model', 'Model', 'name', 'Name'])
+  const category = doc.category ?? (looksLikeTablet(model) ? 'tablet' : 'phone')
   const name = model
     ? String(model).startsWith(brand) ? String(model) : `${brand} ${model}`.trim()
     : brand || 'Unknown device'
@@ -51,24 +63,6 @@ export function toDevice(doc) {
     currency,
     screenInches,
     tags,
-    imageUrl: doc.imageUrl ?? null,
+    imageUrl: doc.imageUrl ?? (brand === 'Apple' ? LOCAL_PHOTOS[withoutStorage(model)] : undefined) ?? null,
   }
-}
-
-export async function listPhones() {
-  const all = []
-  let cursor = null
-  for (;;) {
-    const queries = [Query.limit(PAGE)]
-    if (cursor) queries.push(Query.cursorAfter(cursor))
-    const res = await databases.listDocuments(DATABASE_ID, PHONES_COLLECTION_ID, queries)
-    all.push(...res.documents)
-    if (res.documents.length < PAGE) break
-    cursor = res.documents[res.documents.length - 1].$id
-  }
-  return all.map(toDevice)
-}
-
-export async function getPhone(id) {
-  return toDevice(await databases.getDocument(DATABASE_ID, PHONES_COLLECTION_ID, id))
 }

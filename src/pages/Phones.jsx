@@ -1,17 +1,41 @@
+import { useEffect } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import usePhones from '../hooks/usePhones.js'
+import { useDevicePage } from '../hooks/useDevices.js'
 import PhoneGrid from '../components/PhoneGrid.jsx'
+import Pagination from '../components/Pagination.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import Sidebar from '../components/Sidebar.jsx'
-import { CATEGORIES, applyFilters, readFilters } from '../lib/filters.js'
+import { CATEGORIES, readFilters } from '../lib/filters.js'
+
+const PAGE_SIZE = 24
 
 export default function Phones() {
-  const { phones, loading, error } = usePhones()
-  const [params] = useSearchParams()
+  const [params, setParams] = useSearchParams()
   const filters = readFilters(params)
   const label = CATEGORIES.find((c) => c.key === filters.category).label
 
-  const results = loading || error ? [] : applyFilters(phones, filters)
+  // The page number lives in the URL (?page=2). Changing search, category, filters or sort rebuilds
+  // the URL without it, so those always start again at page 1.
+  const page = Math.max(1, Number(params.get('page')) || 1)
+  const { devices, total, loading, error } = useDevicePage(filters, page, PAGE_SIZE)
+  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+
+  const goToPage = (n, replace = false) => {
+    const next = new URLSearchParams(params)
+    if (n <= 1) next.delete('page')
+    else next.set('page', String(n))
+    setParams(next, { replace })
+    window.scrollTo({ top: 0 })
+  }
+
+  // A saved ?page=99 that no longer exists (fewer results now) moves to the last real page.
+  useEffect(() => {
+    if (!loading && !error && total > 0 && page > pageCount) goToPage(pageCount, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, error, total, page, pageCount])
+
+  const noun = label.toLowerCase()
+  const first = (page - 1) * PAGE_SIZE + 1
 
   return (
     <div>
@@ -24,17 +48,26 @@ export default function Phones() {
         <Sidebar className="shrink-0 md:w-64" />
 
         <div className="min-w-0 flex-1">
-          {loading && <p>Loading…</p>}
-          {error && <p className="text-danger">Could not load {label.toLowerCase()}: {error.message}</p>}
-          {!loading && !error && (
+          {error && <p className="text-danger">Could not load {noun}: {error.message}</p>}
+          {!error && devices.length === 0 && loading && <p>Loading…</p>}
+          {!error && !(devices.length === 0 && loading) && (
             <>
               <p className="mb-3 text-base text-muted">
-                {results.length} {results.length === 1 ? label.toLowerCase().replace(/s$/, '') : label.toLowerCase()}
+                {total} {total === 1 ? noun.replace(/s$/, '') : noun}
+                {total > PAGE_SIZE && devices.length > 0 && ` · showing ${first}–${first + devices.length - 1}`}
               </p>
-              {results.length ? (
-                <PhoneGrid phones={results} columns="grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]" />
+              {devices.length ? (
+                <div className={`transition-opacity ${loading ? 'opacity-50' : ''}`} aria-busy={loading}>
+                  <PhoneGrid phones={devices} columns="grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]" />
+                  <Pagination
+                    page={page}
+                    pageCount={pageCount}
+                    onChange={goToPage}
+                    className="mt-6 justify-end"
+                  />
+                </div>
               ) : (
-                <p className="text-muted">Nothing matches your search or filters.</p>
+                !loading && <p className="text-muted">Nothing matches your search or filters.</p>
               )}
             </>
           )}

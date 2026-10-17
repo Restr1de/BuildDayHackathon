@@ -1,9 +1,9 @@
 import { Link } from 'react-router-dom'
-import usePhones from '../hooks/usePhones.js'
+import { useDevicesByIds } from '../hooks/useDevices.js'
 import { useCompare } from '../context/CompareContext.jsx'
-import AddPhonePicker from '../components/AddPhonePicker.jsx'
 import { SPEC_ROWS, specValue } from '../lib/specRows.js'
 import { formatPrice } from '../lib/format.js'
+import InfoTip from '../components/InfoTip.jsx'
 
 function BackLink() {
   return (
@@ -14,14 +14,11 @@ function BackLink() {
 }
 
 export default function Compare() {
-  const { phones, loading, error } = usePhones()
   const { ids, remove, clear } = useCompare()
+  const { devices: selected, loading, error } = useDevicesByIds(ids)
 
-  if (loading) return <p>Loading…</p>
   if (error) return <p className="text-danger">Could not load phones: {error.message}</p>
-
-  // Keep the order phones were added in.
-  const selected = ids.map((id) => phones.find((p) => p.$id === id)).filter(Boolean)
+  if (loading && selected.length === 0 && ids.length > 0) return <p>Loading…</p>
 
   if (selected.length === 0) {
     return (
@@ -31,12 +28,12 @@ export default function Compare() {
         <p className="mt-2 text-muted">
           You haven’t picked any phones yet. Press “+ Compare” on a phone to add it here.
         </p>
-        <div className="mt-4 flex items-center gap-4">
-          <AddPhonePicker phones={phones} />
-          <Link to="/phones" className="text-base text-primary hover:underline">
-            or browse all phones
-          </Link>
-        </div>
+        <Link
+          to="/phones"
+          className="mt-4 inline-block rounded-full bg-primary px-6 py-2.5 text-lg font-semibold text-on-primary hover:bg-primary-hover"
+        >
+          Browse phones
+        </Link>
       </div>
     )
   }
@@ -45,7 +42,7 @@ export default function Compare() {
 
   // One grid so every spec row lines up with its phone column.
   const gridStyle = {
-    gridTemplateColumns: `8rem repeat(${selected.length}, minmax(11rem, 1fr))`,
+    gridTemplateColumns: `10rem repeat(${selected.length}, minmax(11rem, 1fr))`,
   }
 
   return (
@@ -53,12 +50,9 @@ export default function Compare() {
       <BackLink />
       <div className="mb-4 flex items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Compare</h1>
-        <div className="flex items-center gap-4">
-          <button onClick={clear} className="text-base text-muted hover:underline">
-            Clear all
-          </button>
-          <AddPhonePicker phones={phones} />
-        </div>
+        <button onClick={clear} className="text-base text-muted hover:underline">
+          Clear all
+        </button>
       </div>
 
       <div className="overflow-x-auto rounded-lg border border-line bg-surface shadow-sm">
@@ -93,19 +87,23 @@ export default function Compare() {
 
           {/* Specs beneath, with a heading whenever the group changes */}
           {rows.map((row, i) => {
-            const shade = i % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'
+            const shade = i % 2 === 0 ? 'bg-surface' : 'bg-row-alt'
             const newGroup = i === 0 || rows[i - 1].group !== row.group
             return [
               newGroup && (
                 <div
                   key={`group-${row.group}`}
-                  className="col-span-full border-t border-line bg-accent-soft px-3 py-1.5 text-sm font-bold tracking-wide text-accent-soft-text uppercase"
+                  className="col-span-full border-t border-line bg-group-row px-3 py-1.5 text-sm font-bold tracking-wide text-accent-soft-text uppercase"
                 >
                   {row.group}
                 </div>
               ),
-              <div key={`${row.group}-${row.label}-label`} className={`px-3 py-3 text-sm font-semibold text-muted ${shade}`}>
-                {row.label}
+              <div
+                key={`${row.group}-${row.label}-label`}
+                className={`flex items-center justify-between gap-1 px-3 py-3 text-sm font-semibold text-muted ${shade}`}
+              >
+                <span>{row.label}</span>
+                {row.info && <InfoTip title={row.title ?? row.label}>{row.info}</InfoTip>}
               </div>,
               ...selected.map((p) => (
                 <div key={`${row.group}-${row.label}-${p.$id}`} className={`border-l border-line px-3 py-3 text-center ${shade}`}>

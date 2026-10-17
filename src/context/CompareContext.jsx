@@ -35,10 +35,15 @@ export function CompareProvider({ children }) {
   )
   const remove = useCallback((id) => setIds((cur) => cur.filter((x) => x !== id)), [])
   const clear = useCallback(() => setIds([]), [])
+  // Drops ids that no longer exist in the database (for example after the data was re-imported).
+  const retain = useCallback(
+    (found) => setIds((cur) => (cur.every((id) => found.includes(id)) ? cur : cur.filter((id) => found.includes(id)))),
+    [],
+  )
 
   const value = useMemo(
-    () => ({ ids, toggle, remove, clear, has: (id) => ids.includes(id), isFull: ids.length >= MAX_COMPARE }),
-    [ids, toggle, remove, clear],
+    () => ({ ids, toggle, remove, clear, retain, has: (id) => ids.includes(id), isFull: ids.length >= MAX_COMPARE }),
+    [ids, toggle, remove, clear, retain],
   )
 
   return <CompareContext.Provider value={value}>{children}</CompareContext.Provider>

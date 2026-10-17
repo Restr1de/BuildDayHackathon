@@ -1,12 +1,14 @@
 import { Link } from 'react-router-dom'
-import usePhones from '../hooks/usePhones.js'
+import { useDevicePage } from '../hooks/useDevices.js'
 import PhoneGrid from '../components/PhoneGrid.jsx'
 import SearchBar from '../components/SearchBar.jsx'
-import { categoryOf } from '../lib/filters.js'
+import { readFilters } from '../lib/filters.js'
+
+// Home shows the first four phones, unfiltered.
+const FEATURED = readFilters(new URLSearchParams())
 
 export default function Home() {
-  const { phones } = usePhones()
-  const featured = phones.filter((p) => categoryOf(p) === 'phone').slice(0, 4)
+  const { devices } = useDevicePage(FEATURED, 1, 4)
 
   return (
     <div className="py-8">
@@ -20,7 +22,7 @@ export default function Home() {
         </Link>
         <SearchBar className="w-full max-w-md" />
       </div>
-      <PhoneGrid phones={featured} />
+      <PhoneGrid phones={devices} />
     </div>
   )
 }

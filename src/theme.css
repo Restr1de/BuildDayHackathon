@@ -16,6 +16,8 @@
   --color-page: #f8fafc;           /* page background */
   --color-surface: #ffffff;        /* cards */
   --color-surface-alt: #f1f5f9;    /* image backgrounds */
+  --color-row-alt: #dfe6ee;        /* every other row on the Compare page */
+  --color-group-row: #eec5a8;      /* group headings on the Compare page (Overview, Ratings ...) */
   --color-line: #e2e8f0;           /* borders */
 
   /* Text */

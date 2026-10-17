@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
-import usePhones from '../hooks/usePhones.js'
+import { useBrands, useDevicesByIds } from '../hooks/useDevices.js'
+import { appwriteConfigured } from '../lib/appwrite.js'
 import { useCompare } from '../context/CompareContext.jsx'
 import {
   CATEGORIES,
@@ -8,7 +9,6 @@ import {
   SORTS,
   activeFilterCount,
   buildSearch,
-  categoryOf,
   readFilters,
 } from '../lib/filters.js'
 
@@ -68,7 +68,6 @@ const inputCls =
 
 export default function Sidebar({ className = '' }) {
   const [params, setParams] = useSearchParams()
-  const { phones } = usePhones()
   const { ids, remove } = useCompare()
   const [mobileOpen, setMobileOpen] = useState(false)
 
@@ -82,9 +81,9 @@ export default function Sidebar({ className = '' }) {
   const toggle = (key, value) =>
     update({ [key]: f[key].includes(value) ? f[key].filter((v) => v !== value) : [...f[key], value] })
 
-  const inCategory = phones.filter((p) => categoryOf(p) === f.category)
-  const brands = [...new Set(inCategory.map((p) => p.brand).filter(Boolean))].sort()
-  const picked = ids.map((id) => phones.find((p) => p.$id === id)).filter(Boolean)
+  const brands = useBrands(f.category).map((b) => b.name)
+  const { devices: picked } = useDevicesByIds(ids)
+  const currency = appwriteConfigured ? '$' : '£'
 
   const selectCategory = (key) =>
     update({ category: key, brands: [], screens: [], min: '', max: '' })
@@ -146,7 +145,7 @@ export default function Sidebar({ className = '' }) {
           {brands.length === 0 && <p className="text-sm text-muted">No brands yet.</p>}
         </Section>
 
-        <Section title={`Price (${inCategory[0]?.currency ?? '£'})`}>
+        <Section title={`Price (${currency})`}>
           <div className="flex items-center gap-2">
             <input
               type="number"

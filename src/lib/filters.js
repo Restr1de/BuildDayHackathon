@@ -16,7 +16,7 @@ export const SORTS = [
 export const SCREEN_SIZES = ['small', 'medium', 'large']
 
 // [max inches for "small", max inches for "medium"] - anything bigger is "large".
-const SCREEN_CUTOFFS = {
+export const SCREEN_CUTOFFS = {
   phone: [5.5, 6.5],
   tablet: [9, 11],
   laptop: [13, 15],
