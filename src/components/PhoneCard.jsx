@@ -56,22 +56,7 @@ export default function PhoneCard({ phone }) {
           </ul>
         )}
         <h3 className="text-xl font-semibold">{phone.name}</h3>
-        <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="text-lg font-bold text-primary">{price}</p>
-          <button
-            onClick={() => toggle(activeId)}
-            aria-pressed={selected}
-            disabled={blocked}
-            title={blocked ? 'You can compare up to 4 phones' : undefined}
-            className={`shrink-0 whitespace-nowrap rounded-full border border-primary px-2 py-0.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
-              selected
-                ? 'bg-primary text-on-primary'
-                : 'text-primary hover:bg-accent-soft'
-            }`}
-          >
-            + Compare
-          </button>
-        </div>
+        <p className="mt-1 text-lg font-bold text-primary">{price}</p>
 
         {variants && (
           <div className="mt-3" role="group" aria-label="Storage size">
@@ -99,6 +84,21 @@ export default function PhoneCard({ phone }) {
             </ul>
           </div>
         )}
+
+        {/* Pinned to the bottom of the card, so the buttons line up across a row of cards. */}
+        <div className="mt-auto pt-4">
+          <button
+            onClick={() => toggle(activeId)}
+            aria-pressed={selected}
+            disabled={blocked}
+            title={blocked ? 'You can compare up to 4 phones' : undefined}
+            className={`w-full rounded-lg border-2 border-primary px-4 py-2 text-base font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+              selected ? 'bg-primary text-on-primary' : 'text-primary hover:bg-accent-soft'
+            }`}
+          >
+            + Compare
+          </button>
+        </div>
       </div>
     </div>
   )

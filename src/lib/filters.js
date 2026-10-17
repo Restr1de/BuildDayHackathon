@@ -16,7 +16,7 @@ export function pathFor(category) {
 }
 
 export const SORTS = [
-  { key: '', label: 'Recommended' },
+  { key: '', label: 'Default' },
   { key: 'price-asc', label: 'Price: low to high' },
   { key: 'price-desc', label: 'Price: high to low' },
   { key: 'newest', label: 'Newest first' },

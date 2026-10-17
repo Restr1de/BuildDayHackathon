@@ -80,6 +80,7 @@ export default function Sidebar({ className = '' }) {
   const navigate = useNavigate()
   const count = activeFilterCount(f)
   const label = CATEGORIES.find((c) => c.key === f.category).label
+  const soon = Boolean(CATEGORIES.find((c) => c.key === f.category).soon)
 
   const update = (patch) =>
     setParams(new URLSearchParams(buildSearch({ ...f, ...patch })), { replace: true })
@@ -136,6 +137,9 @@ export default function Sidebar({ className = '' }) {
           })}
         </div>
 
+        {/* Filters only make sense for a category that has devices. */}
+        {!soon && (
+        <>
         <Section title="Sort by">
           <select
             value={f.sort}
@@ -200,6 +204,9 @@ export default function Sidebar({ className = '' }) {
           >
             Clear all filters ({count})
           </button>
+        )}
+
+        </>
         )}
 
         <Section title="Your comparison">

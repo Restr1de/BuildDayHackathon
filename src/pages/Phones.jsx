@@ -1,7 +1,8 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { useDevicePage } from '../hooks/useDevices.js'
 import PhoneGrid from '../components/PhoneGrid.jsx'
+import ComingSoonCard from '../components/ComingSoonCard.jsx'
 import Logo from '../components/Logo.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SearchBar from '../components/SearchBar.jsx'
@@ -9,19 +10,33 @@ import Sidebar from '../components/Sidebar.jsx'
 import useCategory from '../hooks/useCategory.js'
 import { CATEGORIES, pathFor, readFilters } from '../lib/filters.js'
 
-const PAGE_SIZE = 24
+// How many devices to show per page. The choice is remembered in this browser.
+const PER_PAGE_OPTIONS = [12, 24, 48, 96]
+const DEFAULT_PER_PAGE = 24
+const PER_PAGE_KEY = 'per-page'
+
+function loadPerPage() {
+  try {
+    const saved = Number(localStorage.getItem(PER_PAGE_KEY))
+    return PER_PAGE_OPTIONS.includes(saved) ? saved : DEFAULT_PER_PAGE
+  } catch {
+    return DEFAULT_PER_PAGE
+  }
+}
 
 export default function Phones() {
   const [params, setParams] = useSearchParams()
   const category = useCategory()
   const filters = readFilters(params, category)
-  const label = CATEGORIES.find((c) => c.key === filters.category).label
+  const [pageSize, setPageSize] = useState(loadPerPage)
+  const current = CATEGORIES.find((c) => c.key === filters.category)
+  const label = current.label
 
   // The page number lives in the URL (?page=2). Changing search, category, filters or sort rebuilds
   // the URL without it, so those always start again at page 1.
   const page = Math.max(1, Number(params.get('page')) || 1)
-  const { devices, total, loading, error } = useDevicePage(filters, page, PAGE_SIZE)
-  const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
+  const { devices, total, loading, error } = useDevicePage(filters, page, pageSize)
+  const pageCount = Math.max(1, Math.ceil(total / pageSize))
 
   const goToPage = (n, replace = false) => {
     const next = new URLSearchParams(params)
@@ -29,6 +44,21 @@ export default function Phones() {
     else next.set('page', String(n))
     setParams(next, { replace })
     window.scrollTo({ top: 0 })
+  }
+
+  const changePageSize = (n) => {
+    setPageSize(n)
+    try {
+      localStorage.setItem(PER_PAGE_KEY, String(n))
+    } catch {
+      /* storage unavailable: the choice just won't be remembered */
+    }
+    // a different page size makes the old page number meaningless, so go back to page 1
+    if (params.has('page')) {
+      const next = new URLSearchParams(params)
+      next.delete('page')
+      setParams(next, { replace: true })
+    }
   }
 
   // A saved ?page=99 that no longer exists (fewer results now) moves to the last real page.
@@ -47,12 +77,14 @@ export default function Phones() {
   }
 
   const noun = label.toLowerCase()
-  const first = (page - 1) * PAGE_SIZE + 1
+  const first = (page - 1) * pageSize + 1
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between gap-4">
-        <Logo />
+      {/* Sticky header: stays at the top of the window while you scroll. The negative margins let its
+          background run edge to edge across the page padding. */}
+      <div className="sticky top-0 z-30 -mx-4 mb-4 flex items-center justify-between gap-4 border-b border-line bg-page/95 px-4 py-2 backdrop-blur md:-mx-6 md:px-6">
+        <Logo className="h-20" />
         {/* The page heading stays for screen readers and search engines. */}
         <h1 className="sr-only">{label}</h1>
         <SearchBar className="w-full max-w-md" />
@@ -62,14 +94,32 @@ export default function Phones() {
         <Sidebar className="shrink-0 md:w-64" />
 
         <div className="min-w-0 flex-1">
-          {error && <p className="text-danger">Could not load {noun}: {error.message}</p>}
-          {!error && devices.length === 0 && loading && <p>Loading…</p>}
-          {!error && !(devices.length === 0 && loading) && (
+          {current.soon && <ComingSoonCard />}
+          {!current.soon && error && <p className="text-danger">Could not load {noun}: {error.message}</p>}
+          {!current.soon && !error && devices.length === 0 && loading && <p>Loading…</p>}
+          {!current.soon && !error && !(devices.length === 0 && loading) && (
             <>
-              <p className="mb-3 text-base text-muted">
-                {total} {total === 1 ? noun.replace(/s$/, '') : noun}
-                {total > PAGE_SIZE && devices.length > 0 && ` · showing ${first}–${first + devices.length - 1}`}
-              </p>
+              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+                <p className="text-base text-muted">
+                  {total} {total === 1 ? noun.replace(/s$/, '') : noun}
+                  {total > pageSize && devices.length > 0 && ` · showing ${first}–${first + devices.length - 1}`}
+                </p>
+                <label className="flex items-center gap-2 text-base text-muted">
+                  Show
+                  <select
+                    value={pageSize}
+                    onChange={(e) => changePageSize(Number(e.target.value))}
+                    className="rounded border border-line bg-surface px-2 py-1 text-base text-ink outline-none focus:border-primary"
+                  >
+                    {PER_PAGE_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n}
+                      </option>
+                    ))}
+                  </select>
+                  per page
+                </label>
+              </div>
               {devices.length ? (
                 <div className={`transition-opacity ${loading ? 'opacity-50' : ''}`} aria-busy={loading}>
                   <PhoneGrid phones={devices} columns="grid-cols-[repeat(auto-fill,minmax(14rem,1fr))]" />

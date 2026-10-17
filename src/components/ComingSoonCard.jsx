@@ -1,18 +1,16 @@
 import { Link } from 'react-router-dom'
-import Logo from '../components/Logo.jsx'
 import { CATEGORIES } from '../lib/filters.js'
 import useCategory from '../hooks/useCategory.js'
 
-// Shown for a category that has no devices yet (currently laptops).
-export default function ComingSoon() {
+// Shown in the results area for a category that has no devices yet (currently laptops).
+export default function ComingSoonCard() {
   const category = useCategory()
   const current = CATEGORIES.find((c) => c.key === category)
   const others = CATEGORIES.filter((c) => !c.soon && c.key !== category)
 
   return (
     <div>
-      <Logo />
-      <section className="mx-auto mt-6 max-w-xl rounded-2xl border border-line bg-surface px-6 py-12 text-center shadow-sm">
+      <section className="mx-auto max-w-xl rounded-2xl border border-line bg-surface px-6 py-12 text-center shadow-sm">
         <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-accent-soft text-primary">
           <svg
             viewBox="0 0 24 24"
@@ -32,7 +30,7 @@ export default function ComingSoon() {
         <p className="mt-6 inline-block rounded-full bg-primary px-3 py-1 text-sm font-semibold tracking-wide text-on-primary uppercase">
           Coming soon
         </p>
-        <h1 className="mt-4 text-3xl font-bold">{current?.label ?? 'This page'} are on their way</h1>
+        <h2 className="mt-4 text-3xl font-bold">{current?.label ?? 'This page'} are on their way</h2>
         <p className="mt-3 text-lg text-muted">
           We’re getting {current?.label.toLowerCase() ?? 'this section'} ready to compare, with the same clear,
           easy-to-read details as our phones and tablets. Check back soon.
