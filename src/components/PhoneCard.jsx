@@ -1,4 +1,10 @@
-export default function PhoneCard({ phone, onSelect }) {
+import { useCompare } from '../context/CompareContext.jsx'
+
+export default function PhoneCard({ phone }) {
+  const { has, toggle, isFull } = useCompare()
+  const selected = has(phone.$id)
+  const blocked = isFull && !selected
+
   return (
     <div className="flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
       <div className="h-64 w-full bg-surface-alt">
@@ -33,8 +39,15 @@ export default function PhoneCard({ phone, onSelect }) {
             £{Number(phone.price).toFixed(2)}
           </p>
           <button
-            onClick={() => onSelect?.(phone)}
-            className="shrink-0 whitespace-nowrap rounded-full border border-primary px-2 py-0.5 text-xs font-semibold text-primary hover:bg-primary hover:text-on-primary"
+            onClick={() => toggle(phone.$id)}
+            aria-pressed={selected}
+            disabled={blocked}
+            title={blocked ? 'You can compare up to 4 phones' : undefined}
+            className={`shrink-0 whitespace-nowrap rounded-full border border-primary px-2 py-0.5 text-xs font-semibold disabled:cursor-not-allowed disabled:opacity-40 ${
+              selected
+                ? 'bg-primary text-on-primary'
+                : 'text-primary hover:bg-accent-soft'
+            }`}
           >
             + Compare
           </button>

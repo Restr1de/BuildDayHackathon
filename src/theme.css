@@ -4,13 +4,13 @@
 */
 @theme {
   /* Brand */
-  --color-primary: #1d4ed8;        /* buttons, header, prices */
-  --color-primary-hover: #1e40af;
+  --color-primary: #D67540;        /* buttons, header, prices */
+  --color-primary-hover: #BF5F2B;
   --color-on-primary: #ffffff;     /* text on primary */
 
   /* Pills / soft accents */
-  --color-accent-soft: #dbeafe;
-  --color-accent-soft-text: #1e40af;
+  --color-accent-soft: #F6D9C6;
+  --color-accent-soft-text: #6b3410;
 
   /* Surfaces */
   --color-page: #f8fafc;           /* page background */
