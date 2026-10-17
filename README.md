@@ -1,4 +1,4 @@
-# Phone Compare
+# ClearChoices
 
 Compare phones for older people. React + Vite + Tailwind CSS, backed by Appwrite.
 

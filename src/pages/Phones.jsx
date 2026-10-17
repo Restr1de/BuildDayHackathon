@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { Navigate, useSearchParams } from 'react-router-dom'
 import { useDevicePage } from '../hooks/useDevices.js'
 import PhoneGrid from '../components/PhoneGrid.jsx'
+import Logo from '../components/Logo.jsx'
 import Pagination from '../components/Pagination.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import Sidebar from '../components/Sidebar.jsx'
@@ -51,7 +52,9 @@ export default function Phones() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">{label}</h1>
+        <Logo />
+        {/* The page heading stays for screen readers and search engines. */}
+        <h1 className="sr-only">{label}</h1>
         <SearchBar className="w-full max-w-md" />
       </div>
 

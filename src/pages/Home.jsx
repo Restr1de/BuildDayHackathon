@@ -12,7 +12,7 @@ export default function Home() {
 
   return (
     <div className="py-8">
-      <h1 className="text-4xl font-bold">Find the right phone, simply.</h1>
+      <h1 className="text-4xl font-bold">Welcome to ClearChoices</h1>
       <p className="mt-4 text-lg text-muted">
         Compare phones, tablets and laptops side by side with clear, easy-to-read information.
       </p>
