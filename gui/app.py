@@ -16,3 +16,4 @@ class App(ctk.CTk):
         print("Adding phone to database...")
         phones.insert_one({"name": "Iphone 15"})
 
+#woah new test
