@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useDevicePage } from '../hooks/useDevices.js'
+import CompareButton from '../components/CompareButton.jsx'
 import PhoneGrid from '../components/PhoneGrid.jsx'
-import SearchBar from '../components/SearchBar.jsx'
 import { readFilters } from '../lib/filters.js'
 
 // Home shows the first four phones, unfiltered.
@@ -16,11 +16,14 @@ export default function Home() {
       <p className="mt-4 text-lg text-muted">
         Compare phones, tablets and laptops side by side with clear, easy-to-read information.
       </p>
-      <div className="mt-6 mb-8 flex items-center justify-between gap-4">
-        <Link to="/phones" className="shrink-0 rounded bg-primary px-6 py-3 text-lg text-on-primary hover:bg-primary-hover">
+      <div className="mt-6 mb-8 flex items-stretch gap-3">
+        <Link
+          to="/phones"
+          className="block min-w-0 flex-1 rounded bg-primary px-6 py-4 text-center text-xl font-semibold text-on-primary hover:bg-primary-hover"
+        >
           Browse all devices
         </Link>
-        <SearchBar className="w-full max-w-md" />
+        <CompareButton className="rounded px-6 text-xl" />
       </div>
       <section aria-label="Sponsored phones" className="relative rounded-xl border-2 border-primary p-4 pt-6">
         <span className="absolute -top-3.5 left-4 rounded-full bg-primary px-3 py-0.5 text-sm font-semibold text-on-primary">
