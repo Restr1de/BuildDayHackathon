@@ -20,7 +20,7 @@ export default function PhoneCard({ phone, onSelect }) {
             {phone.tags.map((tag) => (
               <li
                 key={tag}
-                className="shrink-0 whitespace-nowrap rounded-full bg-accent-soft px-1.5 py-0 text-[11px] leading-5 font-medium text-accent-soft-text"
+                className="grow shrink-0 whitespace-nowrap rounded-full text-center bg-accent-soft px-1 py-0 text-[11px] leading-5 font-medium text-accent-soft-text"
               >
                 {tag}
               </li>
@@ -28,17 +28,17 @@ export default function PhoneCard({ phone, onSelect }) {
           </ul>
         )}
         <h3 className="text-xl font-semibold">{phone.name}</h3>
-        <p className="mt-1 text-lg font-bold text-primary">
-          £{Number(phone.price).toFixed(2)}
-        </p>
-        {onSelect && (
+        <div className="mt-1 flex items-center justify-between gap-2">
+          <p className="text-lg font-bold text-primary">
+            £{Number(phone.price).toFixed(2)}
+          </p>
           <button
-            onClick={() => onSelect(phone)}
-            className="mt-auto rounded bg-primary px-4 py-2 text-on-primary hover:bg-primary-hover"
+            onClick={() => onSelect?.(phone)}
+            className="shrink-0 whitespace-nowrap rounded-full border border-primary px-2 py-0.5 text-xs font-semibold text-primary hover:bg-primary hover:text-on-primary"
           >
-            Add to compare
+            + Compare
           </button>
-        )}
+        </div>
       </div>
     </div>
   )
