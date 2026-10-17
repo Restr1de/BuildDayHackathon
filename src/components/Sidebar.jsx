@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useBrands, useDevicesByIds } from '../hooks/useDevices.js'
 import { appwriteConfigured } from '../lib/appwrite.js'
+import { displayName } from '../lib/format.js'
 import { useCompare } from '../context/CompareContext.jsx'
 import {
   CATEGORIES,
@@ -197,7 +198,7 @@ export default function Sidebar({ className = '' }) {
               <ul className="mb-3 space-y-1">
                 {picked.map((p) => (
                   <li key={p.$id} className="flex items-center justify-between gap-2 text-base">
-                    <span className="truncate">{p.name}</span>
+                    <span className="truncate">{displayName(p)}</span>
                     <button
                       type="button"
                       onClick={() => remove(p.$id)}

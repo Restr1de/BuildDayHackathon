@@ -99,6 +99,8 @@ export async function fetchBrands(category) {
 
 // ---- Queries -----------------------------------------------------------------------------------
 
+let hasPrimaryColumn = true
+
 // One page of devices matching the filters, plus the total number of matches.
 export async function fetchDevices(filters, page, pageSize) {
   if (!appwriteConfigured) {
@@ -129,7 +131,18 @@ export async function fetchDevices(filters, page, pageSize) {
   if (filters.sort === 'newest') queries.push(Query.orderDesc('launchYear'))
   queries.push(Query.orderAsc('$id')) // keeps the order stable between pages
 
-  const res = await list(queries)
+  // One row per model: scripts/group-variants.mjs marks the primary row of each model. Until that has been
+  // run the column doesn't exist, so fall back to listing every row.
+  let res
+  if (hasPrimaryColumn) {
+    try {
+      res = await list([...queries, Query.equal('isPrimary', [true])])
+    } catch (e) {
+      if (!/isPrimary|attribute/i.test(e.message ?? '')) throw e
+      hasPrimaryColumn = false
+    }
+  }
+  res ??= await list(queries)
   return { devices: res.documents.map(toDevice), total: res.total }
 }
 

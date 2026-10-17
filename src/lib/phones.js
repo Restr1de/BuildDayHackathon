@@ -27,6 +27,18 @@ function toNumber(v) {
   return Number.isFinite(n) && n > 0 ? n : null
 }
 
+// A model's storage options, written by scripts/group-variants.mjs onto its primary row:
+// '[{"id":"…","storage":128,"price":799}, …]' -> [{ id, storage, price }]. Null when there are none.
+function parseVariants(raw) {
+  if (!raw) return null
+  try {
+    const list = typeof raw === 'string' ? JSON.parse(raw) : raw
+    return Array.isArray(list) && list.length ? list : null
+  } catch {
+    return null
+  }
+}
+
 // Turns an Appwrite document (dataset columns: CompanyName, screenSize, launchPriceUSA, ...) into the
 // shape the app uses everywhere (name, brand, price, currency, screenInches, tags, imageUrl).
 // The original fields are kept on the object, so the Compare page can read every dataset column.
@@ -63,6 +75,7 @@ export function toDevice(doc) {
     currency,
     screenInches,
     tags,
+    variants: parseVariants(doc.variants),
     imageUrl: doc.imageUrl ?? (brand === 'Apple' ? LOCAL_PHOTOS[withoutStorage(model)] : undefined) ?? null,
   }
 }

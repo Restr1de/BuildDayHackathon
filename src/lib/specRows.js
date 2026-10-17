@@ -6,6 +6,8 @@
 // launchPrice*, launchYear, ramTier, processorTier, predictedBatteryLife, cameraTier, weightTier).
 // A row is hidden when none of the compared devices has a value for it.
 
+import { formatStorage } from './format.js'
+
 const isNumeric = (v) => typeof v === 'number' || /^\d+(\.\d+)?$/.test(String(v).trim())
 
 const suffix = (unit) => (v) => (isNumeric(v) ? `${v}${unit}` : String(v))
@@ -41,7 +43,7 @@ export const SPEC_ROWS = [
     info: 'The phone’s “brain”. Newer names and higher numbers are faster. Most people don’t need the very fastest one for calls, messages and photos.' },
   { group: 'Hardware', label: 'Memory (RAM)', keys: ['memory', 'RAM'], format: suffix(' GB'),
     info: 'The phone’s short-term memory, used to run apps. More memory means fewer slowdowns. 4 GB is fine for everyday use; 8 GB or more is very smooth.' },
-  { group: 'Hardware', label: 'Storage', keys: ['storage'],
+  { group: 'Hardware', label: 'Storage', keys: ['storage', 'Storage'], format: (v) => (isNumeric(v) ? formatStorage(v) : String(v)),
     info: 'Space to keep photos, apps and music. 128 GB holds many thousands of photos. If you back your photos up online, you can manage with less.' },
   { group: 'Hardware', label: 'Battery', keys: ['battery'],
     info: 'How long the battery lasts on one charge, for example watching video. More hours means less time plugged in.' },

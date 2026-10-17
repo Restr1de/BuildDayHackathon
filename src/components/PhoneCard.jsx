@@ -1,10 +1,31 @@
+import { useState } from 'react'
 import { useCompare } from '../context/CompareContext.jsx'
-import { formatPrice } from '../lib/format.js'
+import { formatMoney, formatPrice, formatStorage } from '../lib/format.js'
 
 export default function PhoneCard({ phone }) {
-  const { has, toggle, isFull } = useCompare()
-  const selected = has(phone.$id)
+  const { has, toggle, remove, isFull } = useCompare()
+
+  // A model with several storage sizes is one card; the pills pick the size (and so the price).
+  // `variants` is [{ id, storage, price }] sorted from the smallest size; without it the card is just itself.
+  const variants = phone.variants?.length > 1 ? phone.variants : null
+  const inComparison = (variants ?? [{ id: phone.$id }]).find((v) => has(v.id))
+  const [chosen, setChosen] = useState(null)
+  const current =
+    variants?.find((v) => v.id === (inComparison?.id ?? chosen)) ?? variants?.[0] ?? null
+
+  const activeId = current?.id ?? phone.$id
+  const price = current ? formatMoney(current.price, phone.currency) : formatPrice(phone)
+  const selected = Boolean(inComparison)
   const blocked = isFull && !selected
+
+  const pick = (variant) => {
+    setChosen(variant.id)
+    // If this model is already being compared, switch that entry to the size just picked.
+    if (inComparison && inComparison.id !== variant.id) {
+      remove(inComparison.id)
+      toggle(variant.id)
+    }
+  }
 
   return (
     <div className="flex flex-col overflow-hidden rounded-lg border border-line bg-surface shadow-sm">
@@ -36,11 +57,9 @@ export default function PhoneCard({ phone }) {
         )}
         <h3 className="text-xl font-semibold">{phone.name}</h3>
         <div className="mt-1 flex items-center justify-between gap-2">
-          <p className="text-lg font-bold text-primary">
-            {formatPrice(phone)}
-          </p>
+          <p className="text-lg font-bold text-primary">{price}</p>
           <button
-            onClick={() => toggle(phone.$id)}
+            onClick={() => toggle(activeId)}
             aria-pressed={selected}
             disabled={blocked}
             title={blocked ? 'You can compare up to 4 phones' : undefined}
@@ -53,6 +72,33 @@ export default function PhoneCard({ phone }) {
             + Compare
           </button>
         </div>
+
+        {variants && (
+          <div className="mt-3" role="group" aria-label="Storage size">
+            <p className="mb-1 text-xs font-semibold tracking-wide text-muted uppercase">Storage</p>
+            <ul className="flex flex-wrap gap-1.5">
+              {variants.map((v) => {
+                const active = v.id === current.id
+                return (
+                  <li key={v.id}>
+                    <button
+                      type="button"
+                      onClick={() => pick(v)}
+                      aria-pressed={active}
+                      className={`rounded-full border px-2.5 py-0.5 text-sm font-semibold ${
+                        active
+                          ? 'border-primary bg-primary text-on-primary'
+                          : 'border-line bg-surface text-ink hover:border-primary hover:text-primary'
+                      }`}
+                    >
+                      {formatStorage(v.storage) || '—'}
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom'
 import { useDevicesByIds } from '../hooks/useDevices.js'
 import { useCompare } from '../context/CompareContext.jsx'
 import { SPEC_ROWS, specValue } from '../lib/specRows.js'
-import { formatPrice } from '../lib/format.js'
+import { formatPrice, formatStorage } from '../lib/format.js'
 import InfoTip from '../components/InfoTip.jsx'
 
 function BackLink() {
@@ -81,6 +81,7 @@ export default function Compare() {
                 )}
               </div>
               <h2 className="mt-3 text-lg font-semibold">{p.name}</h2>
+              {p.Storage && <p className="text-sm font-semibold text-muted">{formatStorage(p.Storage)}</p>}
               <p className="text-lg font-bold text-primary">{formatPrice(p)}</p>
             </div>
           ))}
