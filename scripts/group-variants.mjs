@@ -93,7 +93,7 @@ async function readAll() {
 
 // ---- 3. group -----------------------------------------------------------------------------------
 // A model is a tablet when its name says so (same rule the website uses before this column exists).
-const categoryOf = (d) => (/\b(ipad|tab|tablet)\b/i.test(String(d.ModelName ?? '')) ? 'tablet' : 'phone')
+const categoryOf = (d) => (/\b(ipad|tab|tablet|pad|matepad)\b/i.test(String(d.ModelName ?? '')) ? 'tablet' : 'phone')
 
 const storageOf = (d) => {
   const n = Number(d.Storage ?? d.storage)

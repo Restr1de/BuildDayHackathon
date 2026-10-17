@@ -13,7 +13,7 @@ const list = (queries) => databases.listDocuments(DATABASE_ID, PHONES_COLLECTION
 // Rows carry a `category` column ('phone' or 'tablet') once scripts/group-variants.mjs has been run.
 // Before that (the column doesn't exist yet) a model counts as a tablet when its name has one of these words.
 let hasCategoryColumn = true
-const TABLET_WORDS = ['iPad', 'Tab']
+const TABLET_WORDS = ['iPad', 'Tab', 'Pad']
 
 function categoryQueries(category) {
   if (category !== 'phone' && category !== 'tablet') return null // no laptops in the database

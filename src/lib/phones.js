@@ -16,7 +16,7 @@ export const withoutStorage = (model) =>
   String(model ?? '').replace(/\s*\d+\s*(gb|tb)\s*$/i, '').trim().toLowerCase()
 
 // The dataset has no category column, so tablets are recognised by name.
-export const looksLikeTablet = (model) => /\b(ipad|tab|tablet)\b/i.test(String(model ?? ''))
+export const looksLikeTablet = (model) => /\b(ipad|tab|tablet|pad|matepad)\b/i.test(String(model ?? ''))
 
 const present = (v) => v !== undefined && v !== null && v !== ''
 const pick = (doc, keys) => keys.map((k) => doc[k]).find(present)
