@@ -5,6 +5,7 @@ import PhoneGrid from '../components/PhoneGrid.jsx'
 import ComingSoonCard from '../components/ComingSoonCard.jsx'
 import Logo from '../components/Logo.jsx'
 import Pagination from '../components/Pagination.jsx'
+import CompareButton from '../components/CompareButton.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import Sidebar from '../components/Sidebar.jsx'
 import useCategory from '../hooks/useCategory.js'
@@ -86,11 +87,14 @@ export default function Phones() {
     <div>
       {/* Sticky header: stays at the top of the window while you scroll. The negative margins let its
           background run edge to edge across the page padding. */}
-      <div className="sticky top-0 z-30 -mx-4 mb-4 flex items-center justify-between gap-4 border-b border-line bg-page/95 px-4 py-2 backdrop-blur md:-mx-6 md:px-6">
-        <Logo className="h-20" />
+      {/* On a phone the search box gets its own full-width row, directly above the "Show categories & filters"
+          button; from the md breakpoint up everything sits on one row. */}
+      <div className="sticky top-0 z-30 -mx-4 mb-4 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-line bg-page/95 px-4 py-2 backdrop-blur md:-mx-6 md:flex-nowrap md:gap-x-4 md:px-6">
+        <Logo className="h-16 md:h-20" />
         {/* The page heading stays for screen readers and search engines. */}
         <h1 className="sr-only">{label}</h1>
-        <SearchBar className="w-full max-w-md" />
+        <SearchBar className="order-3 w-full md:order-2 md:ml-auto md:max-w-md md:flex-1" />
+        <CompareButton className="order-2 ml-auto rounded-full px-4 py-2 text-base md:order-3 md:ml-0" />
       </div>
 
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
