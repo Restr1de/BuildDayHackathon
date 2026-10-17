@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { MAX_COMPARE, useCompare } from '../context/CompareContext.jsx'
+import { formatPrice } from '../lib/format.js'
 
 // "+ Add phone" button that opens a searchable list of phones to add to the comparison.
 export default function AddPhonePicker({ phones }) {
@@ -80,7 +81,7 @@ export default function AddPhonePicker({ phones }) {
                     )}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-base font-medium">{p.name}</span>
-                      <span className="block text-sm text-primary">£{Number(p.price).toFixed(2)}</span>
+                      <span className="block text-sm text-primary">{formatPrice(p)}</span>
                     </span>
                     {added && <span className="text-sm font-semibold text-muted">Added ✓</span>}
                   </button>

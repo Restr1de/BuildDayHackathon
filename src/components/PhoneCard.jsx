@@ -1,4 +1,5 @@
 import { useCompare } from '../context/CompareContext.jsx'
+import { formatPrice } from '../lib/format.js'
 
 export default function PhoneCard({ phone }) {
   const { has, toggle, isFull } = useCompare()
@@ -36,7 +37,7 @@ export default function PhoneCard({ phone }) {
         <h3 className="text-xl font-semibold">{phone.name}</h3>
         <div className="mt-1 flex items-center justify-between gap-2">
           <p className="text-lg font-bold text-primary">
-            £{Number(phone.price).toFixed(2)}
+            {formatPrice(phone)}
           </p>
           <button
             onClick={() => toggle(phone.$id)}

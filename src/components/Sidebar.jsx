@@ -146,7 +146,7 @@ export default function Sidebar({ className = '' }) {
           {brands.length === 0 && <p className="text-sm text-muted">No brands yet.</p>}
         </Section>
 
-        <Section title="Price (£)">
+        <Section title={`Price (${inCategory[0]?.currency ?? '£'})`}>
           <div className="flex items-center gap-2">
             <input
               type="number"

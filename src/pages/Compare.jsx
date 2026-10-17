@@ -2,27 +2,13 @@ import { Link } from 'react-router-dom'
 import usePhones from '../hooks/usePhones.js'
 import { useCompare } from '../context/CompareContext.jsx'
 import AddPhonePicker from '../components/AddPhonePicker.jsx'
-
-// Rows shown under the devices, in order. `key` reads from device.specs.
-// A row is hidden when none of the compared devices has a value for it.
-const SPEC_ROWS = [
-  { key: 'year', label: 'Released' },
-  { key: 'screen', label: 'Screen' },
-  { key: 'chip', label: 'Processor' },
-  { key: 'memory', label: 'Memory (RAM)' },
-  { key: 'storage', label: 'Storage' },
-  { key: 'battery', label: 'Battery' },
-  { key: 'camera', label: 'Camera' },
-  { key: 'weight', label: 'Weight' },
-  { key: 'unlock', label: 'Unlock with' },
-  { key: 'charging', label: 'Charging' },
-  { key: 'os', label: 'Software' },
-]
+import { SPEC_ROWS, specValue } from '../lib/specRows.js'
+import { formatPrice } from '../lib/format.js'
 
 function BackLink() {
   return (
     <Link to="/phones" className="mb-2 inline-block text-base text-primary hover:underline">
-      ← Back to phones
+      + Add more phones
     </Link>
   )
 }
@@ -55,7 +41,7 @@ export default function Compare() {
     )
   }
 
-  const rows = SPEC_ROWS.filter((r) => selected.some((p) => p.specs?.[r.key]))
+  const rows = SPEC_ROWS.filter((r) => selected.some((p) => specValue(p, r) !== null))
 
   // One grid so every spec row lines up with its phone column.
   const gridStyle = {
@@ -101,20 +87,29 @@ export default function Compare() {
                 )}
               </div>
               <h2 className="mt-3 text-lg font-semibold">{p.name}</h2>
-              <p className="text-lg font-bold text-primary">£{Number(p.price).toFixed(2)}</p>
+              <p className="text-lg font-bold text-primary">{formatPrice(p)}</p>
             </div>
           ))}
 
-          {/* Specs beneath */}
+          {/* Specs beneath, with a heading whenever the group changes */}
           {rows.map((row, i) => {
             const shade = i % 2 === 0 ? 'bg-surface' : 'bg-surface-alt'
+            const newGroup = i === 0 || rows[i - 1].group !== row.group
             return [
-              <div key={`${row.key}-label`} className={`px-3 py-3 text-sm font-semibold text-muted ${shade}`}>
+              newGroup && (
+                <div
+                  key={`group-${row.group}`}
+                  className="col-span-full border-t border-line bg-accent-soft px-3 py-1.5 text-sm font-bold tracking-wide text-accent-soft-text uppercase"
+                >
+                  {row.group}
+                </div>
+              ),
+              <div key={`${row.group}-${row.label}-label`} className={`px-3 py-3 text-sm font-semibold text-muted ${shade}`}>
                 {row.label}
               </div>,
               ...selected.map((p) => (
-                <div key={`${row.key}-${p.$id}`} className={`border-l border-line px-3 py-3 text-center ${shade}`}>
-                  {p.specs?.[row.key] ?? '—'}
+                <div key={`${row.group}-${row.label}-${p.$id}`} className={`border-l border-line px-3 py-3 text-center ${shade}`}>
+                  {specValue(p, row) ?? '—'}
                 </div>
               )),
             ]

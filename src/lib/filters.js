@@ -57,15 +57,18 @@ export function applyFilters(items, f) {
     if (categoryOf(p) !== f.category) return false
     if (q && ![p.name, ...(p.tags ?? [])].join(' ').toLowerCase().includes(q)) return false
     if (f.brands.length && !f.brands.includes(p.brand)) return false
+    if ((f.min !== '' || f.max !== '') && p.price == null) return false
     if (f.min !== '' && p.price < Number(f.min)) return false
     if (f.max !== '' && p.price > Number(f.max)) return false
-    if (f.screens.length && !f.screens.includes(screenCategory(p.screenInches, f.category))) return false
+    if (f.screens.length && (p.screenInches == null || !f.screens.includes(screenCategory(p.screenInches, f.category)))) return false
     return true
   })
 
-  const year = (p) => Number(p.specs?.year) || 0
-  if (f.sort === 'price-asc') list.sort((a, b) => a.price - b.price)
-  if (f.sort === 'price-desc') list.sort((a, b) => b.price - a.price)
+  const year = (p) => Number(p.specs?.year ?? p.launchYear) || 0
+  // Devices with no price always sort last.
+  const priceKey = (p, missing) => (p.price == null ? missing : p.price)
+  if (f.sort === 'price-asc') list.sort((a, b) => priceKey(a, Infinity) - priceKey(b, Infinity))
+  if (f.sort === 'price-desc') list.sort((a, b) => priceKey(b, -Infinity) - priceKey(a, -Infinity))
   if (f.sort === 'newest') list.sort((a, b) => year(b) - year(a))
   return list
 }
