@@ -22,7 +22,12 @@ export default function Home() {
         </Link>
         <SearchBar className="w-full max-w-md" />
       </div>
-      <PhoneGrid phones={devices} />
+      <section aria-label="Sponsored phones" className="relative rounded-xl border-2 border-primary p-4 pt-6">
+        <span className="absolute -top-3.5 left-4 rounded-full bg-primary px-3 py-0.5 text-sm font-semibold text-on-primary">
+          Sponsored
+        </span>
+        <PhoneGrid phones={devices} />
+      </section>
     </div>
   )
 }
