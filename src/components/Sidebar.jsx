@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useBrands, useDevicesByIds } from '../hooks/useDevices.js'
 import useCategory from '../hooks/useCategory.js'
+import BrandCard from './BrandCard.jsx'
 import { appwriteConfigured } from '../lib/appwrite.js'
 import { displayName } from '../lib/format.js'
 import { useCompare } from '../context/CompareContext.jsx'
@@ -125,6 +126,11 @@ export default function Sidebar({ className = '' }) {
               >
                 <CategoryIcon type={c.key} />
                 {c.label}
+                {c.soon && (
+                  <span className="ml-auto rounded-full bg-accent-soft px-2 py-0.5 text-xs font-semibold text-accent-soft-text">
+                    Soon
+                  </span>
+                )}
               </button>
             )
           })}
@@ -146,9 +152,11 @@ export default function Sidebar({ className = '' }) {
         </Section>
 
         <Section title="Brand">
-          {brands.map((b) => (
-            <Check key={b} label={b} checked={f.brands.includes(b)} onChange={() => toggle('brands', b)} />
-          ))}
+          <div className="grid grid-cols-2 gap-2">
+            {brands.map((b) => (
+              <BrandCard key={b} name={b} selected={f.brands.includes(b)} onToggle={() => toggle('brands', b)} />
+            ))}
+          </div>
           {brands.length === 0 && <p className="text-sm text-muted">No brands yet.</p>}
         </Section>
 

@@ -1,15 +1,25 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useDevicesByIds } from '../hooks/useDevices.js'
 import { useCompare } from '../context/CompareContext.jsx'
 import { SPEC_ROWS, specValue } from '../lib/specRows.js'
 import { formatPrice, formatStorage } from '../lib/format.js'
 import InfoTip from '../components/InfoTip.jsx'
 
-function BackLink() {
+// Goes back to the page you came from (usually the phones list). If this page was opened directly,
+// there is nothing to go back to, so it goes to the phones list instead.
+function BackButton() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const goBack = () => (location.key !== 'default' ? navigate(-1) : navigate('/phones'))
+
   return (
-    <Link to="/phones" className="mb-2 inline-block text-base text-primary hover:underline">
-      + Add more phones
-    </Link>
+    <button
+      type="button"
+      onClick={goBack}
+      className="rounded-full bg-primary px-6 py-2 text-base font-semibold text-on-primary hover:bg-primary-hover"
+    >
+      Back
+    </button>
   )
 }
 
@@ -23,9 +33,9 @@ export default function Compare() {
   if (selected.length === 0) {
     return (
       <div>
-        <BackLink />
-        <h1 className="text-3xl font-bold">Compare</h1>
-        <p className="mt-2 text-muted">
+        <BackButton />
+        <h1 className="sr-only">Compare</h1>
+        <p className="mt-4 text-muted">
           You haven’t picked any phones yet. Press “+ Compare” on a phone to add it here.
         </p>
         <Link
@@ -47,9 +57,9 @@ export default function Compare() {
 
   return (
     <div>
-      <BackLink />
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h1 className="text-3xl font-bold">Compare</h1>
+        <BackButton />
+        <h1 className="sr-only">Compare</h1>
         <button onClick={clear} className="text-base text-muted hover:underline">
           Clear all
         </button>

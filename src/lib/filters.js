@@ -3,7 +3,7 @@
 export const CATEGORIES = [
   { key: 'phone', label: 'Phones', singular: 'phone', path: '/phones' },
   { key: 'tablet', label: 'Tablets', singular: 'tablet', path: '/tablets' },
-  { key: 'laptop', label: 'Laptops', singular: 'laptop', path: '/laptops' },
+  { key: 'laptop', label: 'Laptops', singular: 'laptop', path: '/laptops', soon: true },
 ]
 
 // Each category has its own page (/phones, /tablets, /laptops); anywhere else (Home, Compare) counts as phones.

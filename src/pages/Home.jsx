@@ -12,18 +12,20 @@ export default function Home() {
 
   return (
     <div className="py-8">
-      <h1 className="text-4xl font-bold">Welcome to ClearChoices</h1>
-      <p className="mt-4 text-lg text-muted">
-        Compare phones, tablets and laptops side by side with clear, easy-to-read information.
-      </p>
-      <div className="mt-6 mb-8 flex items-stretch gap-3">
-        <Link
-          to="/phones"
-          className="block min-w-0 flex-1 rounded bg-primary px-6 py-4 text-center text-xl font-semibold text-on-primary hover:bg-primary-hover"
-        >
-          Browse all devices
-        </Link>
-        <CompareButton className="rounded px-6 text-xl" />
+      <div className="mb-8">
+        <h1 className="text-4xl font-bold">Welcome to ClearChoices</h1>
+        <p className="mt-3 text-lg text-muted">
+          Compare phones, tablets and laptops side by side with clear, easy-to-read information.
+        </p>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
+          <Link
+            to="/phones"
+            className="block rounded bg-primary px-5 py-2.5 text-center text-base font-semibold text-on-primary hover:bg-primary-hover"
+          >
+            Browse all devices
+          </Link>
+          <CompareButton className="rounded px-5 py-2.5 text-base" />
+        </div>
       </div>
       <section aria-label="Sponsored phones" className="relative rounded-xl border-2 border-primary p-4 pt-6">
         <span className="absolute -top-3.5 left-4 rounded-full bg-primary px-3 py-0.5 text-sm font-semibold text-on-primary">

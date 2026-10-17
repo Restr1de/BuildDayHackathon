@@ -1,7 +1,7 @@
 import { screenCategory } from './filters.js'
 
 // Photos we have locally (public/phones), keyed by model name without the storage size.
-const LOCAL_PHOTOS = {
+export const LOCAL_PHOTOS = {
   'iphone 16 plus': '/phones/iphone-16-plus.png',
   'iphone 16': '/phones/iphone-16.png',
   'iphone 15 pro': '/phones/iphone-15-pro.png',
@@ -11,7 +11,7 @@ const LOCAL_PHOTOS = {
   'iphone 12': '/phones/iphone-12.png',
 }
 
-const withoutStorage = (model) =>
+export const withoutStorage = (model) =>
   String(model ?? '').replace(/\s*\d+\s*(gb|tb)\s*$/i, '').trim().toLowerCase()
 
 // The dataset has no category column, so tablets are recognised by name.

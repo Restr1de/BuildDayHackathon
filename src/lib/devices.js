@@ -46,14 +46,20 @@ function screenQuery(category, size) {
 // The database can't list distinct values, so the brand filter reads just two short fields
 // (company + model name) once per browser session and works the brands out from those.
 
-const CATALOG_KEY = 'device-catalog-v2'
+const CATALOG_KEY = 'device-catalog-v4'
+const CATALOG_TTL = 60 * 1000 // a minute: removed brands disappear quickly, and it is still only ~10 small requests
 let catalogPromise = null
+let catalogAt = 0
 
 function loadCatalog() {
+  // The list in memory expires too, so an open tab picks up database changes without a full reload.
+  if (catalogPromise && Date.now() - catalogAt > CATALOG_TTL) catalogPromise = null
+  if (!catalogPromise) catalogAt = Date.now()
   catalogPromise ??= (async () => {
     try {
+      // Kept for a few minutes only, so brands added or removed in the database show up soon.
       const cached = JSON.parse(sessionStorage.getItem(CATALOG_KEY) ?? 'null')
-      if (Array.isArray(cached)) return cached
+      if (cached && Array.isArray(cached.rows) && Date.now() - cached.at < CATALOG_TTL) return cached.rows
     } catch {
       /* no cache */
     }
@@ -73,7 +79,7 @@ function loadCatalog() {
         c: d.category || (looksLikeTablet(d.ModelName) ? 'tablet' : 'phone'),
       }))
     try {
-      sessionStorage.setItem(CATALOG_KEY, JSON.stringify(rows))
+      sessionStorage.setItem(CATALOG_KEY, JSON.stringify({ at: Date.now(), rows }))
     } catch {
       /* storage full or unavailable */
     }
