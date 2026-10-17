@@ -1,0 +1,28 @@
+/*
+  Colour scheme. Change the values here to restyle the whole app.
+  Use in markup as: bg-primary, text-muted, border-line, etc.
+*/
+@theme {
+  /* Brand */
+  --color-primary: #1d4ed8;        /* buttons, header, prices */
+  --color-primary-hover: #1e40af;
+  --color-on-primary: #ffffff;     /* text on primary */
+
+  /* Pills / soft accents */
+  --color-accent-soft: #dbeafe;
+  --color-accent-soft-text: #1e40af;
+
+  /* Surfaces */
+  --color-page: #f8fafc;           /* page background */
+  --color-surface: #ffffff;        /* cards */
+  --color-surface-alt: #f1f5f9;    /* image backgrounds */
+  --color-line: #e2e8f0;           /* borders */
+
+  /* Text */
+  --color-ink: #0f172a;            /* main text */
+  --color-muted: #475569;          /* secondary text */
+  --color-faint: #94a3b8;          /* placeholders */
+
+  /* Status */
+  --color-danger: #b91c1c;
+}
