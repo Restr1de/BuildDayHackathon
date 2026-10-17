@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useCompare } from '../context/CompareContext.jsx'
+import { useCountry } from '../context/CountryContext.jsx'
+import { amazonSearchUrl } from '../lib/amazon.js'
 import { formatMoney, formatPrice, formatStorage } from '../lib/format.js'
 
 export default function PhoneCard({ phone }) {
   const { has, toggle, remove, isFull } = useCompare()
+  const { country } = useCountry()
 
   // A model with several storage sizes is one card; the pills pick the size (and so the price).
   // `variants` is [{ id, storage, price }] sorted from the smallest size; without it the card is just itself.
@@ -14,7 +17,9 @@ export default function PhoneCard({ phone }) {
     variants?.find((v) => v.id === (inComparison?.id ?? chosen)) ?? variants?.[0] ?? null
 
   const activeId = current?.id ?? phone.$id
-  const price = current ? formatMoney(current.price, phone.currency) : formatPrice(phone)
+  // Each storage size has a launch price per country; older saved data only has the USA one.
+  const sizePrice = current?.prices?.[country.priceKey ?? country.key] ?? (country.priceKey === 'usa' ? current?.price : null)
+  const price = current ? formatMoney(sizePrice, phone.currency) : formatPrice(phone)
   const selected = Boolean(inComparison)
   const blocked = isFull && !selected
 
@@ -55,7 +60,18 @@ export default function PhoneCard({ phone }) {
             ))}
           </ul>
         )}
-        <h3 className="text-xl font-semibold">{phone.name}</h3>
+        <h3 className="text-xl font-semibold">
+          <a
+            href={amazonSearchUrl(phone, current?.storage)}
+            target="_blank"
+            rel="noopener noreferrer sponsored"
+            title="Search for this on Amazon"
+            className="hover:text-primary hover:underline"
+          >
+            {phone.name}
+            <span className="sr-only"> (searches Amazon, opens in a new tab)</span>
+          </a>
+        </h3>
         <p className="mt-1 text-lg font-bold text-primary">{price}</p>
 
         {variants && (

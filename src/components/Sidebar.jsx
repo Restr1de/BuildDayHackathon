@@ -3,6 +3,9 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { useBrands, useDevicesByIds } from '../hooks/useDevices.js'
 import useCategory from '../hooks/useCategory.js'
 import BrandCard from './BrandCard.jsx'
+import CountryCard from './CountryCard.jsx'
+import { useCountry } from '../context/CountryContext.jsx'
+import { COUNTRIES } from '../lib/countries.js'
 import { appwriteConfigured } from '../lib/appwrite.js'
 import { displayName } from '../lib/format.js'
 import { useCompare } from '../context/CompareContext.jsx'
@@ -90,7 +93,8 @@ export default function Sidebar({ className = '' }) {
 
   const brands = useBrands(f.category).map((b) => b.name)
   const { devices: picked } = useDevicesByIds(ids)
-  const currency = appwriteConfigured ? '$' : '£'
+  const { country, setCountry } = useCountry()
+  const currency = appwriteConfigured ? country.currency : '£'
 
   // Each category is its own page. Moving keeps the search words and sort, but not the filters,
   // because brands and screen sizes differ between phones and tablets.
@@ -136,6 +140,27 @@ export default function Sidebar({ className = '' }) {
             )
           })}
         </div>
+
+        {/* Which country's launch prices to show. Only the database has them; the sample data is in pounds. */}
+        {!soon && appwriteConfigured && (
+          <Section title="Country">
+            <div className="grid grid-cols-3 gap-1.5">
+              {COUNTRIES.map((c) => (
+                <CountryCard
+                  key={c.key}
+                  country={c}
+                  selected={c.key === country.key}
+                  onSelect={() => {
+                    setCountry(c.key)
+                    // A price range typed in one currency means nothing in another, so start it again.
+                    if (f.min !== '' || f.max !== '') update({ min: '', max: '' })
+                  }}
+                />
+              ))}
+            </div>
+            <p className="mt-2 text-xs text-muted">Launch prices, in local currency.</p>
+          </Section>
+        )}
 
         {/* Filters only make sense for a category that has devices. */}
         {!soon && (

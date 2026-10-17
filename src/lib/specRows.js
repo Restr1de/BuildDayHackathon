@@ -63,7 +63,7 @@ export const SPEC_ROWS = [
   { group: 'Everyday use', label: 'Charging', keys: ['charging'],
     info: 'The type of plug the phone uses. USB-C is the newer, common one and works with many chargers. Lightning is Apple’s older plug.' },
 
-  { group: 'Launch price', label: 'USA', title: 'Launch price: USA', keys: ['launchPriceUSA'], format: money('$'), info: launchInfo('the USA') },
+  { group: 'Launch price', label: 'UK', title: 'Launch price: UK', keys: ['launchPriceUSA'], format: money('£'), info: launchInfo('the UK') },
   { group: 'Launch price', label: 'India', title: 'Launch price: India', keys: ['launchPriceIndia'], format: money('₹'), info: launchInfo('India') },
   { group: 'Launch price', label: 'China', title: 'Launch price: China', keys: ['launchPriceChina'], format: money('¥'), info: launchInfo('China') },
   { group: 'Launch price', label: 'Pakistan', title: 'Launch price: Pakistan', keys: ['launchPricePakistan'], format: money('PKR '), info: launchInfo('Pakistan') },

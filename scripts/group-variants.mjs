@@ -5,7 +5,7 @@
 //   1. adds three columns if they are missing:  isPrimary (true/false),  variants (text)  and  category (text)
 //   2. groups rows by CompanyName + ModelName (identical duplicate rows are ignored)
 //   3. for each model, the row with the smallest Storage becomes the "primary" row: isPrimary = true and
-//      variants = [{ id, storage, price }, ...] listing every storage size and its USA launch price
+//      variants = [{ id, storage, price, prices }, ...] listing every storage size and its launch price in each country
 //   4. every other row gets isPrimary = false
 //   5. every row gets category = 'tablet' (iPad, Galaxy Tab, Tablet ... in the model name) or 'phone', so the
 //      website can filter by category with a plain query
@@ -122,7 +122,19 @@ function plan(docs) {
       (a, b) => (storageOf(a) ?? Infinity) - (storageOf(b) ?? Infinity),
     )
     const json = JSON.stringify(
-      variants.map((d) => ({ id: d.$id, storage: storageOf(d), price: d.launchPriceUSA ?? null })),
+      variants.map((d) => ({
+        id: d.$id,
+        storage: storageOf(d),
+        price: d.launchPriceUSA ?? null, // kept for older versions of the site
+        // every country's launch price, so the card can switch country without another request
+        prices: {
+          usa: d.launchPriceUSA ?? null,
+          india: d.launchPriceIndia ?? null,
+          china: d.launchPriceChina ?? null,
+          pakistan: d.launchPricePakistan ?? null,
+          dubai: d.launchPriceDubai ?? null,
+        },
+      })),
     )
     for (const d of rows) wanted.set(d.$id, { isPrimary: false, variants: null, category: categoryOf(d) })
     wanted.set(variants[0].$id, { isPrimary: true, variants: json, category: categoryOf(variants[0]) })

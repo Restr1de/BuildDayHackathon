@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useCompare } from '../context/CompareContext.jsx'
+import { useCountry } from '../context/CountryContext.jsx'
 import { fetchBrands, fetchDevices, fetchDevicesByIds } from '../lib/devices.js'
 
 // One page of devices for the current filters. While the next page loads, the previous one stays on screen.
@@ -26,8 +27,9 @@ export function useDevicePage(filters, page, pageSize) {
 // The devices behind a list of ids (the comparison), in the same order.
 export function useDevicesByIds(ids) {
   const { retain } = useCompare()
+  const { country } = useCountry()
   const [state, setState] = useState({ devices: [], loading: ids.length > 0, error: null })
-  const key = ids.join(',')
+  const key = ids.join(',') + '|' + country.key
 
   useEffect(() => {
     let live = true
@@ -36,7 +38,7 @@ export function useDevicesByIds(ids) {
       return
     }
     setState((s) => ({ ...s, loading: true, error: null }))
-    fetchDevicesByIds(ids)
+    fetchDevicesByIds(ids, country.key)
       .then((devices) => {
         if (!live) return
         setState({ devices, loading: false, error: null })

@@ -4,6 +4,7 @@ import { useCompare } from '../context/CompareContext.jsx'
 import { SPEC_ROWS, specValue } from '../lib/specRows.js'
 import { formatPrice, formatStorage } from '../lib/format.js'
 import InfoTip from '../components/InfoTip.jsx'
+import { amazonSearchUrl } from '../lib/amazon.js'
 
 // Goes back to the page you came from (usually the phones list). If this page was opened directly,
 // there is nothing to go back to, so it goes to the phones list instead.
@@ -90,7 +91,18 @@ export default function Compare() {
                   <div className="flex h-full items-center justify-center text-faint">No image</div>
                 )}
               </div>
-              <h2 className="mt-3 text-lg font-semibold">{p.name}</h2>
+              <h2 className="mt-3 text-lg font-semibold">
+                <a
+                  href={amazonSearchUrl(p)}
+                  target="_blank"
+                  rel="noopener noreferrer sponsored"
+                  title="Search for this on Amazon"
+                  className="hover:text-primary hover:underline"
+                >
+                  {p.name}
+                  <span className="sr-only"> (searches Amazon, opens in a new tab)</span>
+                </a>
+              </h2>
               {p.Storage && <p className="text-sm font-semibold text-muted">{formatStorage(p.Storage)}</p>}
               <p className="text-lg font-bold text-primary">{formatPrice(p)}</p>
             </div>

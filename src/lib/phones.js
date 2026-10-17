@@ -1,4 +1,5 @@
 import { screenCategory } from './filters.js'
+import { countryByKey } from './countries.js'
 
 // Photos we have locally (public/phones), keyed by model name without the storage size.
 export const LOCAL_PHOTOS = {
@@ -28,7 +29,7 @@ function toNumber(v) {
 }
 
 // A model's storage options, written by scripts/group-variants.mjs onto its primary row:
-// '[{"id":"…","storage":128,"price":799}, …]' -> [{ id, storage, price }]. Null when there are none.
+// '[{"id":"…","storage":128,"price":799,"prices":{"usa":799,"india":79999,…}}, …]'. Null when there are none.
 function parseVariants(raw) {
   if (!raw) return null
   try {
@@ -42,7 +43,9 @@ function parseVariants(raw) {
 // Turns an Appwrite document (dataset columns: CompanyName, screenSize, launchPriceUSA, ...) into the
 // shape the app uses everywhere (name, brand, price, currency, screenInches, tags, imageUrl).
 // The original fields are kept on the object, so the Compare page can read every dataset column.
-export function toDevice(doc) {
+// `countryKey` picks which country's launch price becomes `price` (see lib/countries.js).
+export function toDevice(doc, countryKey = 'uk') {
+  const country = countryByKey(countryKey)
   const brand = doc.CompanyName ?? doc.brand ?? ''
   // The dataset's model column name isn't fixed, so accept the usual spellings.
   const model = pick(doc, ['modelName', 'ModelName', 'Model Name', 'model', 'Model', 'name', 'Name'])
@@ -52,8 +55,8 @@ export function toDevice(doc) {
     : brand || 'Unknown device'
 
   const hasPrice = present(doc.price)
-  const price = hasPrice ? toNumber(doc.price) : toNumber(doc.launchPriceUSA)
-  const currency = hasPrice ? (doc.currency ?? '£') : '$'
+  const price = hasPrice ? toNumber(doc.price) : toNumber(doc[country.field])
+  const currency = hasPrice ? (doc.currency ?? '£') : country.symbol
 
   const screenInches = toNumber(doc.screenSize ?? doc.screenInches)
   const year = doc.launchYear ?? doc.specs?.year

@@ -2,13 +2,15 @@ import { Link } from 'react-router-dom'
 import { useDevicePage } from '../hooks/useDevices.js'
 import CompareButton from '../components/CompareButton.jsx'
 import PhoneGrid from '../components/PhoneGrid.jsx'
+import { useCountry } from '../context/CountryContext.jsx'
 import { readFilters } from '../lib/filters.js'
 
 // Home shows the first four phones, unfiltered.
 const FEATURED = readFilters(new URLSearchParams())
 
 export default function Home() {
-  const { devices } = useDevicePage(FEATURED, 1, 4)
+  const { country } = useCountry()
+  const { devices } = useDevicePage({ ...FEATURED, country: country.key }, 1, 4)
 
   return (
     <div className="py-8">

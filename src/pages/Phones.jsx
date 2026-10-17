@@ -8,6 +8,7 @@ import Pagination from '../components/Pagination.jsx'
 import SearchBar from '../components/SearchBar.jsx'
 import Sidebar from '../components/Sidebar.jsx'
 import useCategory from '../hooks/useCategory.js'
+import { useCountry } from '../context/CountryContext.jsx'
 import { CATEGORIES, pathFor, readFilters } from '../lib/filters.js'
 
 // How many devices to show per page. The choice is remembered in this browser.
@@ -27,7 +28,9 @@ function loadPerPage() {
 export default function Phones() {
   const [params, setParams] = useSearchParams()
   const category = useCategory()
-  const filters = readFilters(params, category)
+  const { country } = useCountry()
+  // The chosen country decides which launch price is shown, filtered and sorted.
+  const filters = { ...readFilters(params, category), country: country.key }
   const [pageSize, setPageSize] = useState(loadPerPage)
   const current = CATEGORIES.find((c) => c.key === filters.category)
   const label = current.label

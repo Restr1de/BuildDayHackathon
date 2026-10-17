@@ -5,6 +5,7 @@ import { Query } from 'appwrite'
 import { databases, DATABASE_ID, PHONES_COLLECTION_ID, appwriteConfigured } from './appwrite.js'
 import { samplePhones } from '../data/samplePhones.js'
 import { SCREEN_CUTOFFS, applyFilters, categoryOf } from './filters.js'
+import { countryByKey } from './countries.js'
 import { looksLikeTablet, toDevice } from './phones.js'
 
 const list = (queries) => databases.listDocuments(DATABASE_ID, PHONES_COLLECTION_ID, queries)
@@ -132,19 +133,22 @@ export async function fetchDevices(filters, page, pageSize) {
     brandSpellings = filters.brands.flatMap((n) => known.find((b) => b.name === n)?.variants ?? [n])
   }
 
+  // Price filter and price sort use the chosen country's launch price column.
+  const priceField = countryByKey(filters.country).field
+
   const build = () => {
     const queries = [Query.limit(pageSize), Query.offset((page - 1) * pageSize), ...categoryQueries(filters.category)]
     queries.push(...searchQueries(filters.q))
     if (brandSpellings.length) queries.push(Query.equal('CompanyName', brandSpellings))
-    if (filters.min !== '') queries.push(Query.greaterThanEqual('launchPriceUSA', Number(filters.min)))
-    if (filters.max !== '') queries.push(Query.lessThanEqual('launchPriceUSA', Number(filters.max)))
+    if (filters.min !== '') queries.push(Query.greaterThanEqual(priceField, Number(filters.min)))
+    if (filters.max !== '') queries.push(Query.lessThanEqual(priceField, Number(filters.max)))
     if (filters.screens.length) {
       const bands = filters.screens.map((s) => screenQuery(filters.category, s))
       queries.push(bands.length === 1 ? bands[0] : Query.or(bands))
     }
 
-    if (filters.sort === 'price-asc') queries.push(Query.orderAsc('launchPriceUSA'))
-    if (filters.sort === 'price-desc') queries.push(Query.orderDesc('launchPriceUSA'))
+    if (filters.sort === 'price-asc') queries.push(Query.orderAsc(priceField))
+    if (filters.sort === 'price-desc') queries.push(Query.orderDesc(priceField))
     if (filters.sort === 'newest') queries.push(Query.orderDesc('launchYear'))
     queries.push(Query.orderAsc('$id')) // keeps the order stable between pages
 
@@ -158,7 +162,7 @@ export async function fetchDevices(filters, page, pageSize) {
   for (let attempt = 0; ; attempt++) {
     try {
       const res = await list(build())
-      return { devices: res.documents.map(toDevice), total: res.total }
+      return { devices: res.documents.map((d) => toDevice(d, filters.country)), total: res.total }
     } catch (e) {
       const msg = e.message ?? ''
       // (Two requests can fail together, so a flag that is already off still means "try again".)
@@ -170,10 +174,10 @@ export async function fetchDevices(filters, page, pageSize) {
 }
 
 // The devices with these ids, in the order given.
-export async function fetchDevicesByIds(ids) {
+export async function fetchDevicesByIds(ids, country = 'uk') {
   if (!ids.length) return []
   if (!appwriteConfigured) return ids.map((id) => samplePhones.find((p) => p.$id === id)).filter(Boolean)
   const res = await list([Query.equal('$id', ids), Query.limit(ids.length)])
-  const byId = new Map(res.documents.map((d) => [d.$id, toDevice(d)]))
+  const byId = new Map(res.documents.map((d) => [d.$id, toDevice(d, country)]))
   return ids.map((id) => byId.get(id)).filter(Boolean)
 }

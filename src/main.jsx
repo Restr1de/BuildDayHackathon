@@ -3,14 +3,17 @@ import { createRoot } from 'react-dom/client'
 import { BrowserRouter } from 'react-router-dom'
 import App from './App.jsx'
 import { CompareProvider } from './context/CompareContext.jsx'
+import { CountryProvider } from './context/CountryContext.jsx'
 import './index.css'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <BrowserRouter>
-      <CompareProvider>
-        <App />
-      </CompareProvider>
+      <CountryProvider>
+        <CompareProvider>
+          <App />
+        </CompareProvider>
+      </CountryProvider>
     </BrowserRouter>
   </StrictMode>,
 )
